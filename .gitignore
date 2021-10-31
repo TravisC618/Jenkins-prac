@@ -67,3 +67,6 @@ target/
 
 #Ignore Idea
 .idea/
+
+# Local History
+.history/
