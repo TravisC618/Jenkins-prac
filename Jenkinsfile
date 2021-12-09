@@ -12,10 +12,6 @@ podTemplate(
             image = "${USER}/devopsv5:${currentBuild.number}"
         }
         
-        stage("Git pull") {
-            git "https://github.com/TravisC618/Jenkins-prac"
-        }
-        
         stage("Docker image build") {
             dockerImageBuild("${image}")
         }
