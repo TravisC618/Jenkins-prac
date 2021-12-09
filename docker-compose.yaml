@@ -1,7 +1,7 @@
 version: '3'
 services:
     devopsv5:
-        image: davisliu/devopsv5:latest
+        image: travisccc/devopsv5:latest
         restart: always
         build: ./
         ports:

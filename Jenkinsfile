@@ -5,33 +5,34 @@ podTemplate(
     ],
     volumes: [hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')]
 ) {
-    node(POD_LABEL) {
-        
-        def image
-        withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
-            image = "${USER}/devopsv5:${currentBuild.number}"
-        }
-        
-        stage("Git pull") {
-            git "https://github.com/TravisC618/Jenkins-prac"
-        }
-        
-        stage("Docker image build") {
-            dockerImageBuild("${image}")
-        }
-        
-        stage("Docker image push") {
-            dockerImagePUSH("${image}")
-        }
-        
-        stage("Deploy to Test environment"){
-            deployToEB("test");
-        }
-        
-        stage("Running test on test environment") {
-            smokeTest("test")
-        }
-    }
+	node(POD_LABEL) {
+
+		def image
+		def tag = "${currentBuild.number}"
+		withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
+			image = "${USER}/devopsv5:${tag}"
+		}
+
+		stage("Build and Test") {
+			checkout scm
+			dockerImageBuild(image)
+			smokeTest("unit test")
+		}
+
+		if (env.BRANCH_NAME == 'master') {
+			stage("Docker image push") {
+				dockerImagePUSH(image)
+			}
+			
+			stage("Deploy to Test environment"){
+				deployToEB("test", tag);
+			}
+			
+			stage("Running test on test environment") {
+				smokeTest("integration test")
+			}
+		}
+	}
 }
 
 def dockerImageBuild(image) {
@@ -49,20 +50,21 @@ def dockerImagePUSH(image) {
     }
 }
 
-def deployToEB(env) {
+def deployToEB(env, tag) {
+	checkout scm
     withCredentials([usernamePassword(credentialsId: 'aws-eb-key', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
         container('eb') {
             withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=us-east-1", "AWS_EB_ENV_NAME=Devopsv5-env"]) {
                 dir("deployment") {
-                    sh "echo aws eb env name: ${AWS_EB_ENV_NAME}"
-					sh "cat Dockerrun.aws.json.tpl"
-                    // sh "eb deploy ${AWS_EB_ENV_NAME}"   
+					sh "sh generate-dockerrun.sh ${tag}"
+					sh "cat Dockerrun.aws.json"
+                    sh "eb deploy ${AWS_EB_ENV_NAME} -l ${tag}"
                 }
             }
         }        
     }
 }
 
-def smokeTest(env) {
-    sh "...running smoke test on ${env} environment..."
+def smokeTest(test) {
+    sh "echo running ${test}..."
 }
