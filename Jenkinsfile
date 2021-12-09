@@ -13,10 +13,13 @@ podTemplate(
 			image = "${USER}/devopsv5:${tag}"
 		}
 
-        stage("Build and Test") {
+		stage("Build and Test") {
 			checkout scm
 			dockerImageBuild(image)
+			smokeTest("unit test")
+		}
 
+		if (env.BRANCH_NAME == 'master') {
 			stage("Docker image push") {
 				dockerImagePUSH(image)
 			}
@@ -26,7 +29,7 @@ podTemplate(
 			}
 			
 			stage("Running test on test environment") {
-				smokeTest("test")
+				smokeTest("integration test")
 			}
 		}
 	}
@@ -62,6 +65,6 @@ def deployToEB(env, tag) {
     }
 }
 
-def smokeTest(env) {
-    sh 'echo running test...'
+def smokeTest(test) {
+    sh "echo running ${test}..."
 }
