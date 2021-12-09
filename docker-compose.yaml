@@ -1,7 +1,7 @@
 version: '3'
 services:
-    jrcms:
-        image: davisliu/jrcms:latest
+    devopsv5:
+        image: davisliu/devopsv5:latest
         restart: always
         build: ./
         ports:
