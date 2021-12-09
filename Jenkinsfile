@@ -11,12 +11,9 @@ podTemplate(
         withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
             image = "${USER}/devopsv5:${currentBuild.number}"
         }
-        
-        stage("Git pull") {
-            git "https://github.com/TravisC618/Jenkins-prac"
-        }
 
         stage("Docker image build") {
+			checkout scm
             dockerImageBuild("${image}")
         }
         
