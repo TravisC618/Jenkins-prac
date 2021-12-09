@@ -23,7 +23,7 @@ podTemplate(
         }
         
         stage("Deploy to Test environment"){
-            deployToEB("test");
+            deployToEB("test", "${tag}");
         }
         
         stage("Running test on test environment") {
@@ -47,7 +47,7 @@ def dockerImagePUSH(image) {
     }
 }
 
-def deployToEB(env) {
+def deployToEB(env, tag) {
     withCredentials([usernamePassword(credentialsId: 'aws-eb-key', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
         container('eb') {
             withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=us-east-1", "AWS_EB_ENV_NAME=Devopsv5-env"]) {
