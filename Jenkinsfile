@@ -54,6 +54,7 @@ def deployToEB(env, tag) {
             withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=us-east-1", "AWS_EB_ENV_NAME=Devopsv5-env"]) {
                 dir("deployment") {
 					sh "sh generate-dockerrun.sh ${tag}"
+					sh "cat Dockerrun.aws.json"
                     sh "eb deploy ${AWS_EB_ENV_NAME} -l ${tag}"
                 }
             }
