@@ -61,5 +61,5 @@ def deployToEB(env) {
 }
 
 def smokeTest(env) {
-    sh "...running smoke test on ${env} environment..."
+    sh 'echo "...running smoke test on ${env} environment..."'
 }
