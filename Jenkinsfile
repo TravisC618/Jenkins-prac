@@ -8,8 +8,9 @@ podTemplate(
     node(POD_LABEL) {
         
         def image
+		def tag = "${currentBuild.number}"
         withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
-            image = "${USER}/devopsv5:${currentBuild.number}"
+            image = "${USER}/devopsv5:${tag}"
         }
 
         stage("Docker image build") {
@@ -51,9 +52,8 @@ def deployToEB(env) {
         container('eb') {
             withEnv(["AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}", "AWS_REGION=us-east-1", "AWS_EB_ENV_NAME=Devopsv5-env"]) {
                 dir("deployment") {
-                    sh "echo aws eb env name: ${AWS_EB_ENV_NAME}"
-					sh "cat Dockerrun.aws.json.tpl"
-                    // sh "eb deploy ${AWS_EB_ENV_NAME}"   
+					sh "sh generate-dockerrun.sh ${tag}"
+                    sh "eb deploy ${AWS_EB_ENV_NAME} -l ${tag}"
                 }
             }
         }        
@@ -61,5 +61,5 @@ def deployToEB(env) {
 }
 
 def smokeTest(env) {
-    sh 'echo "...running smoke test on ${env} environment..."'
+    sh 'echo running test...'
 }
