@@ -5,31 +5,31 @@ podTemplate(
     ],
     volumes: [hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')]
 ) {
-    node(POD_LABEL) {
-        
-        def image
-		def tag = "${currentBuild.number}"
-        withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
-            image = "${USER}/devopsv5:${tag}"
-        }
+	node(POD_LABEL) {
 
-        stage("Docker image build") {
+		def image
+		def tag = "${currentBuild.number}"
+		withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USER', passwordVariable: 'PASSWD')]) {
+			image = "${USER}/devopsv5:${tag}"
+		}
+
+        stage("Build and Test") {
 			checkout scm
-            dockerImageBuild(image)
-        }
-        
-        stage("Docker image push") {
-            dockerImagePUSH(image)
-        }
-        
-        stage("Deploy to Test environment"){
-            deployToEB("test", tag);
-        }
-        
-        stage("Running test on test environment") {
-            smokeTest("test")
-        }
-    }
+			dockerImageBuild(image)
+
+			stage("Docker image push") {
+				dockerImagePUSH(image)
+			}
+			
+			stage("Deploy to Test environment"){
+				deployToEB("test", tag);
+			}
+			
+			stage("Running test on test environment") {
+				smokeTest("test")
+			}
+		}
+	}
 }
 
 def dockerImageBuild(image) {
