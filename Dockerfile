@@ -1,12 +1,10 @@
-FROM python:3.6.4
-
-WORKDIR /workdir
-
-COPY . /workdir
-
+FROM python:3.7-alpine
+WORKDIR /app
+COPY app .
 RUN pip install -r requirements.txt
 
-RUN python manage.py create_db
+RUN python -m unittest -v
 
-CMD ["python", "run.py"]
-
+EXPOSE 8080
+ENTRYPOINT ["python"]
+CMD ["controller.py"]
